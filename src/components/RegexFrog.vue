@@ -1,10 +1,10 @@
 <template>
   <main class="main">
     <h1>Regex Froggy - Level {{ id }}</h1>
-    Choose from the symbols below to craft your solution:
-    <section class="symbols">
+    {{ id == "1" ? "Choose from the tiles below to craft your solution:" : "" }}
+    <section class="">
       <div
-        class="puzzle-tile"
+        class="available puzzle-tile"
         v-for="(symbol, index) in remainingTiles"
         v-bind:key="index"
         @click="add(symbol)"
@@ -21,7 +21,10 @@
         {{ tile.char }}
       </div>
     </section>
-    <button type="button" @click="doPuzzle">Go</button>
+    <section class="actions">
+      <button type="button" class="go" @click="doPuzzle">Go</button>
+      <button type="button" @click="restart">Reset</button>
+    </section>
     <div class="border puzzle">
       <div :class="`${currentIndex < 0 ? 'froggy' : 'placeholder'}`"></div>
       <div
@@ -38,7 +41,10 @@
       ></div>
     </div>
 
-    <section class="result">{{ result }}</section>
+    <section class="result" v-if="result">{{ result }}</section>
+    <section class="actions" v-if="result">
+      <button type="button" @click="restart">Restart</button>
+    </section>
   </main>
 </template>
 
@@ -54,7 +60,10 @@ export default {
   },
   setup: (props) => {
     const result = ref("");
-    const solution = ref("");
+    const chosenTiles = ref([]);
+    const solution = computed(() => {
+      return chosenTiles.value.reduce((prev, curr) => prev + curr, "");
+    });
     let { puzzle, availableTiles } = toRefs(props);
     const currentIndex = ref(-1);
     const remainingTiles = ref(availableTiles.value.map((tile) => tile));
@@ -84,7 +93,7 @@ export default {
     });
 
     const solutionTiles = computed(() => {
-      return solution.value.split("").map((char, id) => ({
+      return chosenTiles.value.map((char, id) => ({
         char,
         id,
       }));
@@ -112,21 +121,27 @@ export default {
       }
 
       result.value = didWin.value
-        ? "You won!"
+        ? "🎉 You won!"
         : validSubstringLength.value == 0
         ? "🚨 Invalid Solution!"
         : "🚫 You lose! Fuck you!";
     }
 
     function add(tile) {
-      console.log("Add", tile);
       const indexOfItemToRemove = remainingTiles.value.findIndex(
         (remaining) => remaining == tile
       );
       remainingTiles.value = remainingTiles.value.filter(
         (_, i) => i != indexOfItemToRemove
       );
-      solution.value = solution.value + tile;
+      chosenTiles.value.push(tile);
+    }
+
+    function restart() {
+      remainingTiles.value = availableTiles.value;
+      currentIndex.value = -1;
+      chosenTiles.value = [];
+      result.value = "";
     }
 
     return {
@@ -138,6 +153,7 @@ export default {
       currentIndex,
       validSubstringLength,
       remainingTiles,
+      restart,
     };
   },
   methods: {},
@@ -172,6 +188,13 @@ section {
   display: flex;
 }
 
+.available {
+  cursor: pointer;
+}
+.available:active {
+  position: relative;
+  top: 4px;
+}
 .puzzle-tile {
   border: 1px solid black;
   border-radius: 5px;
@@ -197,7 +220,7 @@ section div {
   margin: 1rem;
 }
 .finish:before {
-  content: "🌱";
+  content: "🪰";
 }
 .froggy:before {
   content: "🐸";
@@ -213,5 +236,25 @@ section div {
 }
 .highlight-red {
   background-color: #ffdddd;
+}
+.actions {
+  display: flex;
+}
+.actions button {
+  font-size: 24px;
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 5px;
+  margin-right: 16px;
+}
+
+.actions button:active {
+  position: relative;
+  top: 4px;
+}
+
+.go {
+  padding: 24px;
+  font-size: 32px !important;
 }
 </style>
