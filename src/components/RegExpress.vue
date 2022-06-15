@@ -1,6 +1,6 @@
 <template>
   <main class="main">
-    <h1>Regex Froggy - Level {{ id }}</h1>
+    <h1>Reg Express - Level {{ id }}</h1>
     {{ id == "1" ? "Choose from the tiles below to craft your solution:" : "" }}
     <section class="">
       <div
@@ -26,9 +26,9 @@
       <button type="button" @click="restart">Reset</button>
     </section>
     <div class="border puzzle">
-      <div :class="`${currentIndex < 0 ? 'froggy' : 'placeholder'}`"></div>
+      <div :class="`${currentIndex < 0 ? 'train' : 'placeholder'}`"></div>
       <div
-        :class="`puzzle-tile ${currentIndex == tile.id ? 'froggy' : ''} ${
+        :class="`puzzle-tile ${currentIndex == tile.id ? 'train' : ''} ${
           tile.highlight ? `highlight-${tile.highlight}` : ''
         }`"
         v-for="tile in puzzleTiles"
@@ -37,26 +37,30 @@
         {{ tile.id == currentIndex ? "" : tile.char }}
       </div>
       <div
-        :class="`${currentIndex >= puzzleTiles.length ? 'froggy' : 'finish'}`"
+        :class="`${currentIndex >= puzzleTiles.length ? 'train' : 'finish'}`"
       ></div>
     </div>
 
     <section class="result" v-if="result">{{ result }}</section>
     <section class="actions" v-if="result">
       <button type="button" @click="restart">Restart</button>
+      <button type="button" v-if="hasNextLevel" @click="$emit('nextLevel')">
+        Next Level
+      </button>
     </section>
   </main>
 </template>
 
 <script>
-import { ref, computed, toRefs } from "vue";
+import { ref, computed, toRefs, watch } from "vue";
 
 export default {
-  name: "RegexFrog",
+  name: "RegExpress",
   props: {
     puzzle: String,
     availableTiles: Array,
     id: String,
+    hasNextLevel: Boolean,
   },
   setup: (props) => {
     const result = ref("");
@@ -88,7 +92,7 @@ export default {
         }
         return 0;
       } catch {
-        return 0;
+        return -1;
       }
     });
 
@@ -122,9 +126,9 @@ export default {
 
       result.value = didWin.value
         ? "🎉 You won!"
-        : validSubstringLength.value == 0
+        : validSubstringLength.value < 0
         ? "🚨 Invalid Solution!"
-        : "🚫 You lose! Fuck you!";
+        : "🚫 You lose!";
     }
 
     function add(tile) {
@@ -143,6 +147,8 @@ export default {
       chosenTiles.value = [];
       result.value = "";
     }
+
+    watch(puzzle, restart);
 
     return {
       add,
@@ -213,17 +219,17 @@ section div {
   min-height: 90px;
 }
 
-.froggy,
+.train,
 .finish {
   border-radius: 5px;
   padding: 1rem;
   margin: 1rem;
 }
 .finish:before {
-  content: "🪰";
+  content: "🏛";
 }
-.froggy:before {
-  content: "🐸";
+.train:before {
+  content: "🚃";
 }
 .placeholder {
   padding: 1rem;

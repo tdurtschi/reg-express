@@ -1,102 +1,53 @@
 <template>
-  <RegexFrog
-    v-for="(level, index) in levels"
-    v-bind:key="index"
-    :id="level.id"
-    :puzzle="level.puzzle"
-    :availableTiles="level.availableTiles"
+  <RegExpress
+    :id="currentLevel.id"
+    :puzzle="currentLevel.puzzle"
+    :availableTiles="currentLevel.availableTiles"
+    :hasNextLevel="hasNextLevel"
+    @nextLevel="nextLevel"
   />
 </template>
 
 <script>
-import RegexFrog from "./components/RegexFrog.vue";
+import RegExpress from "./components/RegExpress.vue";
+import { allLevels } from "./allLevels";
+import { ref, computed } from "vue";
+
+function getLevelFromQuery(allLevels) {
+  const levelUrl = document.location.href.split("level=")[1];
+  const level = allLevels.find((level) => level.id == levelUrl);
+  return level ?? allLevels[0];
+}
 
 export default {
   name: "App",
   components: {
-    RegexFrog,
+    RegExpress,
   },
   data() {
+    return {};
+  },
+  setup() {
+    const currentLevel = ref(getLevelFromQuery(allLevels));
     return {
-      levels: [
-        {
-          id: "1",
-          puzzle: "froggy",
-          availableTiles: [
-            "f",
-            "r",
-            "o",
-            "g",
-            "g",
-            "y",
-            ".",
-
-            "[a-z]",
-            "[a-z]",
-            "{2}",
-          ],
-        },
-        {
-          id: "1.2",
-          puzzle: "froggy",
-          availableTiles: ["f", "r", "o", "y", ".", "[a-z]", "[a-z]", "{2}"],
-        },
-        {
-          id: "1.3",
-          puzzle: "forgery",
-          availableTiles: ["f", "r", "o", "y", ".", "[a-z]", "[a-z]", "{2}"],
-        },
-        {
-          id: "1.4",
-          puzzle: "fourgery",
-          availableTiles: ["f", "r", "o", "y", ".", "[a-z]", "[a-z]", "{4}"],
-        },
-        {
-          id: "1.5",
-          puzzle: "fivegery",
-          availableTiles: ["f", "r", "o", "y", ".", "[a-z]", "[a-z]", "{4}"],
-        },
-        {
-          id: "1.6",
-          puzzle: "froyo rosy",
-          availableTiles: [
-            "f",
-            "r",
-            "o",
-            "y",
-            ".",
-            "[a-z]",
-            "[a-z]",
-            "{2}",
-            "{4}",
-          ],
-        },
-        {
-          id: "2",
-          puzzle: "banana",
-          availableTiles: ["b", "a", "a", "n", "(", ")", "{2}"],
-        },
-        { id: "3", puzzle: "   ", availableTiles: [".", "a", " ", " "] },
-        { id: "4", puzzle: " a a", availableTiles: [".", "a", " ", " "] },
-        {
-          id: "5",
-          puzzle: "vetted",
-          availableTiles: ["v", "et", "ted", "|", "(", ")", "{2}"],
-        },
-      ],
+      currentLevel,
+      hasNextLevel: computed(() => {
+        return (
+          allLevels.findIndex((level) => level.id == currentLevel.value.id) <
+          allLevels.length - 1
+        );
+      }),
+      nextLevel() {
+        const nextLevelId =
+          allLevels[
+            allLevels.findIndex((level) => level.id == currentLevel.value.id) +
+              1
+          ].id;
+        document.location.search = `?level=${nextLevelId}`;
+      },
     };
   },
 };
-
-// const otherLevels = [
-//   { id: "1", puzzle: "abcde", availableTiles: "['a', 'b', 'c', 'd', 'e']" },
-//   { id: "2", puzzle: "aabb", availableTiles: "['a', 'b', '*', '*']" },
-//   {
-//     id: "3",
-//     puzzle: "aabab",
-//     availableTiles: "['a', 'b', 'a', '(', ')', '*']",
-//   },
-// ];
 </script>
 
 <style>
