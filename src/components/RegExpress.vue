@@ -2,7 +2,7 @@
   <main class="main">
     <h1>Reg Express - Level {{ id }}</h1>
     {{ id == "1" ? "Choose from the tiles below to craft your solution:" : "" }}
-    <section class="">
+    <section class="puzzle-tiles-section">
       <div
         class="available puzzle-tile"
         v-for="(symbol, index) in remainingTiles"
@@ -22,8 +22,22 @@
       </div>
     </section>
     <section class="actions">
-      <button type="button" class="go" @click="doPuzzle">Go</button>
-      <button type="button" @click="restart">Reset</button>
+      <button
+        type="button"
+        class="go"
+        @click="doPuzzle"
+        :disabled="currentIndex > -1"
+      >
+        Go
+      </button>
+      <button
+        type="button"
+        class="reset"
+        @click="restart"
+        :disabled="currentIndex > -1"
+      >
+        Reset
+      </button>
     </section>
     <div class="border puzzle">
       <div :class="`${currentIndex < 0 ? 'train' : 'placeholder'}`"></div>
@@ -81,12 +95,26 @@ export default {
       }
     });
 
+    const substringMatches = (substring, regexStr) => {
+      for (var i = 1; i <= regexStr.length; i++) {
+        try {
+          const regex = new RegExp(`^${regexStr.substring(0, i)}$`);
+          const result = regex.test(substring);
+
+          if (result) {
+            return true;
+          }
+        } catch (e) {
+          //
+        }
+      }
+      return false;
+    };
+
     const validSubstringLength = computed(() => {
       try {
         for (var i = puzzle.value.length; i >= 0; i--) {
-          const regex = new RegExp(`^${solution.value}$`);
-          const testSubstring = regex.test(puzzle.value.substring(0, i));
-          if (testSubstring) {
+          if (substringMatches(puzzle.value.substring(0, i), solution.value)) {
             return i;
           }
         }
@@ -178,20 +206,19 @@ main {
 }
 
 section {
-  margin: 1rem;
-  padding: 1rem;
+  margin-bottom: 1rem;
   min-width: 10px;
   min-height: 10px;
 
   display: flex;
+  flex-wrap: wrap;
 }
 
 .puzzle {
-  margin: 1rem;
-  padding: 1rem;
   min-width: 10px;
   min-height: 10px;
   display: flex;
+  flex-wrap: wrap;
 }
 
 .available {
@@ -204,9 +231,9 @@ section {
 .puzzle-tile {
   border: 1px solid black;
   border-radius: 5px;
-  padding: 1rem;
-  margin: 1rem;
-  min-width: 24px;
+  padding: 0.4rem;
+  margin: 0.4rem;
+  min-width: 12px;
 }
 
 section div {
@@ -216,14 +243,19 @@ section div {
   margin: 1rem;
 }
 .staging-area {
-  min-height: 90px;
+  min-height: 45px;
+}
+
+.puzzle-tiles-section {
+  min-height: 45px;
 }
 
 .train,
 .finish {
   border-radius: 5px;
-  padding: 1rem;
-  margin: 1rem;
+  padding: 0.3rem;
+  margin: 0.3rem;
+  min-width: 16px;
 }
 .finish:before {
   content: "🏛";
@@ -232,9 +264,9 @@ section div {
   content: "🚃";
 }
 .placeholder {
-  padding: 1rem;
-  margin: 1rem;
-  min-width: 24px;
+  padding: 0.3rem;
+  margin: 0.3rem;
+  min-width: 16px;
 }
 
 .highlight-green {
@@ -246,21 +278,17 @@ section div {
 .actions {
   display: flex;
 }
-.actions button {
-  font-size: 24px;
-  background-color: white;
-  border: 1px solid black;
-  border-radius: 5px;
-  margin-right: 16px;
-}
 
 .actions button:active {
   position: relative;
   top: 4px;
 }
 
+.reset {
+  background-color: #d6d078;
+}
+
 .go {
-  padding: 24px;
-  font-size: 32px !important;
+  background-color: #b9d678;
 }
 </style>

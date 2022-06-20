@@ -52,12 +52,38 @@ export default {
 
 <style>
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: monospace;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
-  font-size: 32px;
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+button {
+  font-size: 16px;
+  border: 1px solid black;
+  border-radius: 5px;
+  margin-right: 16px;
+  padding: 0.5rem;
+}
+
+button:disabled {
+  border-color: #666;
+  color: #666;
+}
+
+h1 {
+  font-size: 24px;
+}
+
+@media screen and (min-width: 768px) {
+  #app {
+    font-size: 24px;
+  }
+  h1 {
+    font-size: 32px;
+  }
 }
 </style>
