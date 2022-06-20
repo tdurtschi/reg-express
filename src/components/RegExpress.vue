@@ -214,7 +214,14 @@ section {
   flex-wrap: wrap;
 }
 
+@media screen and (min-width: 768px) {
+  .staging-area {
+    height: 75px;
+  }
+}
+
 .puzzle {
+  margin-top: 2rem;
   min-width: 10px;
   min-height: 10px;
   display: flex;
@@ -228,12 +235,26 @@ section {
   position: relative;
   top: 4px;
 }
+
+.available.puzzle-tile {
+  font-size: 32px;
+  padding: 0.5rem;
+  margin: 0.5rem;
+}
+
 .puzzle-tile {
   border: 1px solid black;
   border-radius: 5px;
   padding: 0.4rem;
   margin: 0.4rem;
   min-width: 12px;
+}
+@media screen and (min-width: 768px) {
+  .puzzle-tile {
+    padding: 0.5rem;
+    margin: 0.5rem;
+    font-size: 32px;
+  }
 }
 
 section div {
@@ -245,7 +266,6 @@ section div {
 .staging-area {
   min-height: 45px;
 }
-
 .puzzle-tiles-section {
   min-height: 45px;
 }
@@ -257,6 +277,17 @@ section div {
   margin: 0.3rem;
   min-width: 16px;
 }
+
+@media screen and (min-width: 768px) {
+  .train,
+  .finish {
+    border-radius: 5px;
+    padding: 0.5rem;
+    margin: 0.5rem;
+    font-size: 32px;
+  }
+}
+
 .finish:before {
   content: "🏛";
 }
