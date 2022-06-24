@@ -39,22 +39,13 @@
         Reset
       </button>
     </section>
-    <div class="border puzzle">
-      <div :class="`${currentIndex < 0 ? 'train' : 'placeholder'}`"></div>
-      <div
-        :class="`puzzle-tile ${currentIndex == tile.id ? 'train' : ''} ${
-          tile.highlight ? `highlight-${tile.highlight}` : ''
-        }`"
-        v-for="tile in puzzleTiles"
-        v-bind:key="tile.id"
-      >
-        {{ tile.id == currentIndex ? "" : tile.char }}
-      </div>
-      <div
-        :class="`${currentIndex >= puzzleTiles.length ? 'train' : 'finish'}`"
-      ></div>
-    </div>
-
+    <Puzzle
+      v-for="puzzleSegment in puzzleSegments"
+      v-bind:key="puzzleSegment.id"
+      :puzzle="puzzleSegment.text"
+      :currentIndex="currentIndex"
+      :validSubstringLength="puzzleSegment.validSubstringLength"
+    />
     <section class="result" v-if="result">{{ result }}</section>
     <section class="actions" v-if="result">
       <button type="button" @click="restart">Restart</button>
@@ -67,11 +58,16 @@
 
 <script>
 import { ref, computed, toRefs, watch } from "vue";
+import Puzzle from "./Puzzle.vue";
+import { validSubstrLength } from "../puzzleChecker";
 
 export default {
   name: "RegExpress",
+  components: {
+    Puzzle,
+  },
   props: {
-    puzzle: String,
+    puzzle: [String, Array],
     availableTiles: Array,
     id: String,
     hasNextLevel: Boolean,
@@ -86,43 +82,48 @@ export default {
     const currentIndex = ref(-1);
     const remainingTiles = ref(availableTiles.value.map((tile) => tile));
 
+    const puzzleSegments = computed(() => {
+      return puzzle.value[0].text
+        ? puzzle.value.map((puzzleSegment, id) => ({
+            ...puzzleSegment,
+            id,
+            validSubstringLength: validSubstrLength(
+              puzzleSegment.text,
+              solution.value
+            ),
+          }))
+        : [
+            {
+              id: 1,
+              text: puzzle.value,
+              shouldMatch: true,
+              validSubstringLength: validSubstrLength(
+                puzzle.value,
+                solution.value
+              ),
+            },
+          ];
+    });
+
     const didWin = computed(() => {
       try {
-        const regex = new RegExp(`^${solution.value}$`);
-        return regex.test(puzzle.value);
+        return puzzleSegments.value.every((segment) => {
+          const regex = new RegExp(`^${solution.value}$`);
+          console.log("Did win? Checking", segment.text, regex);
+          console.log("result was", regex.test(segment.text));
+          return regex.test(segment.text);
+        });
       } catch {
         return false;
       }
     });
 
-    const substringMatches = (substring, regexStr) => {
-      for (var i = 1; i <= regexStr.length; i++) {
-        try {
-          const regex = new RegExp(`^${regexStr.substring(0, i)}$`);
-          const result = regex.test(substring);
-
-          if (result) {
-            return true;
-          }
-        } catch (e) {
-          //
-        }
-      }
-      return false;
-    };
-
-    const validSubstringLength = computed(() => {
-      try {
-        for (var i = puzzle.value.length; i >= 0; i--) {
-          if (substringMatches(puzzle.value.substring(0, i), solution.value)) {
-            return i;
-          }
-        }
-        return 0;
-      } catch {
-        return -1;
-      }
-    });
+    const longestValidSubstringLength = computed(() =>
+      puzzleSegments.value.reduce((prev, curr) => {
+        var validSubstringLength = validSubstrLength(curr.text, solution.value);
+        return validSubstringLength > prev ? validSubstringLength : prev;
+      }, 0)
+    );
 
     const solutionTiles = computed(() => {
       return chosenTiles.value.map((char, id) => ({
@@ -131,30 +132,16 @@ export default {
       }));
     });
 
-    const puzzleTiles = computed(() => {
-      return puzzle.value.split("").map((char, id) => ({
-        char,
-        id,
-        highlight:
-          currentIndex.value > id
-            ? "green"
-            : currentIndex.value == id
-            ? id > validSubstringLength.value - 1
-              ? "red"
-              : "green"
-            : "",
-      }));
-    });
-
     async function doPuzzle() {
-      for (var i = 0; i <= validSubstringLength.value; i++) {
+      console.log("longest was", longestValidSubstringLength.value);
+      for (var i = 0; i <= longestValidSubstringLength.value; i++) {
         await new Promise((res) => setTimeout(res, 300));
         currentIndex.value = i;
       }
 
       result.value = didWin.value
         ? "🎉 You won!"
-        : validSubstringLength.value < 0
+        : longestValidSubstringLength.value < 0
         ? "🚨 Invalid Solution!"
         : "🚫 You lose!";
     }
@@ -183,11 +170,10 @@ export default {
       doPuzzle,
       solutionTiles,
       result,
-      puzzleTiles,
       currentIndex,
-      validSubstringLength,
       remainingTiles,
       restart,
+      puzzleSegments,
     };
   },
   methods: {},
@@ -220,14 +206,6 @@ section {
   }
 }
 
-.puzzle {
-  margin-top: 2rem;
-  min-width: 10px;
-  min-height: 10px;
-  display: flex;
-  flex-wrap: wrap;
-}
-
 .available {
   cursor: pointer;
 }
@@ -249,6 +227,7 @@ section {
   margin: 0.4rem;
   min-width: 12px;
 }
+
 @media screen and (min-width: 768px) {
   .puzzle-tile {
     padding: 0.5rem;
@@ -270,42 +249,6 @@ section div {
   min-height: 45px;
 }
 
-.train,
-.finish {
-  border-radius: 5px;
-  padding: 0.3rem;
-  margin: 0.3rem;
-  min-width: 16px;
-}
-
-@media screen and (min-width: 768px) {
-  .train,
-  .finish {
-    border-radius: 5px;
-    padding: 0.5rem;
-    margin: 0.5rem;
-    font-size: 32px;
-  }
-}
-
-.finish:before {
-  content: "🏛";
-}
-.train:before {
-  content: "🚃";
-}
-.placeholder {
-  padding: 0.3rem;
-  margin: 0.3rem;
-  min-width: 16px;
-}
-
-.highlight-green {
-  background-color: #ddffdd;
-}
-.highlight-red {
-  background-color: #ffdddd;
-}
 .actions {
   display: flex;
 }
