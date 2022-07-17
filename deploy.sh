@@ -4,5 +4,6 @@ set -e
 
 npm run build
 git add dist/.
-git commit --amend --no-edit
+git commit -m "build"
 git subtree push --prefix dist origin gh-pages
+git reset --hard origin/main
